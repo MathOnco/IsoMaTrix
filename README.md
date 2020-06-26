@@ -1,4 +1,5 @@
 # IsoMaTrix
+[![View IsoMaTrix on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/77377-isomatrix)
 
 ## Abstract
 
