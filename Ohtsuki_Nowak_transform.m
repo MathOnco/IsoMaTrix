@@ -1,5 +1,5 @@
-function outA = spacealizeON(A,k,nuType)
-%spatializeON(A,k,r)
+function outA = Ohtsuki_Nowak_transform(A,k,nuType)
+%Ohtsuki_Nowak_transform(A,k,r)
 %   Takes as input:
 %       A - square game matrix
 %       k - degree of graph (> 3)
