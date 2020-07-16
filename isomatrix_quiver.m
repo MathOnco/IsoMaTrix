@@ -73,13 +73,18 @@ function [] = isomatrix_quiver(A,varargin)
                 V = Z1(i,j);
                 U = (Z3(i,j)-Z2(i,j))*cos(pi/3); 
                 mag = sqrt(V^2 + U^2);
-
-                %% set direction & magnitude
-                ah = annotation('arrow','headStyle','cback1','HeadLength',HL,'HeadWidth',HW);
                 
-                set(ah,'parent',gca);
-                set(ah,'position',[X(i,j), Y(i,j), len*U/mag, len*V/mag]);
-                set(ah,'Color',color);
+                if mag > 0
+                    %% set direction & magnitude
+                    ah = annotation('arrow','headStyle','cback1','HeadLength',HL,'HeadWidth',HW);
+
+                    set(ah,'parent',gca);
+                    
+                    set(ah,'position',[X(i,j), Y(i,j), len*U/mag, len*V/mag]);
+                    set(ah,'Color',color);
+                else
+                   plot(X(i,j), Y(i,j),'.','MarkerSize',15,'Color',color);
+                end
             end
         end
     end
