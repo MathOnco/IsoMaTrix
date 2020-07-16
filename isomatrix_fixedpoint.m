@@ -11,7 +11,6 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
         % no user specified index, with no extra arguments
         index = 1;
     end
-
     
     %% set up default values for optional parameters: ('Color' and 'Labels')
     color = [0,0,0];
@@ -142,27 +141,34 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                     
                 end
 
-                % determine left stability:
-                x = zeros(1,3);            
-                x(i) = 1;
-                [x_point,y_point] = UVW_to_XY(x);
-
-
-                if (Ap(1,1) >= Ap(2,1))
-                    plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                % if not equal, determine other stable point:
+                if ((Ap(1,1) == Ap(2,1)) && (Ap(1,2) == Ap(2,2)))
+                    
                 else
-                    plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
-                end
+                
+                    % determine left stability:
+                    x = zeros(1,3);            
+                    x(i) = 1;
+                    [x_point,y_point] = UVW_to_XY(x);
 
-                x = zeros(1,3);
-                x(j) = 1;
-                [x_point,y_point] = UVW_to_XY(x);
 
-                if (Ap(2,2) > Ap(1,2))                    
-                    plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
-                else
-                    plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                    if (Ap(1,1) >= Ap(2,1))
+                        plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                    else
+                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                    end
+
+                    x = zeros(1,3);
+                    x(j) = 1;
+                    [x_point,y_point] = UVW_to_XY(x);
+
+                    if (Ap(2,2) > Ap(1,2))                    
+                        plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                    else
+                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                    end
                 end
+                
 
                 %% plot a line over all three edges, just for cleanliness:
                 plot(x_line,y_line,'-', 'LineWidth', 3,'Color',[0,0,0]);hold on;
@@ -188,13 +194,27 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
     pq_star = inv(Apq)*B;
     p_star = pq_star(1);
     q_star = pq_star(2);
-
+    
     if ((p_star > 0) && (q_star > 0))
         if ((p_star < 1) && (q_star < 1))
             if (((p_star+q_star) < 1))
                 x = [p_star,q_star,1-p_star-q_star];
+                
+                type = DetermineFixedPointType(x,A);
                 [x_point,y_point] = UVW_to_XY(x);
-                plot(x_point,y_point,'s','MarkerSize', s_ms/4,'MarkerFaceColor',color,'MarkerEdgeColor',color);hold on;
+                if ((type <= 1))
+                    % stable:
+                    plot(x_point,y_point,'.', 'MarkerSize', s_ms,'Color',color);hold on;
+                elseif (type == 2)
+                    % unstable
+                    plot(x_point,y_point,'^','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
+                elseif (type == 3)
+                    % saddle (triangle)
+                    plot(x_point,y_point,'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
+                else
+                    % source (open circle)
+                    plot(x_point,y_point,'s','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
+                end
             end
         end
     end
@@ -209,11 +229,16 @@ function plot_arrows(i,j,x_star,delta,color,stability)
     xDiff(j) = -1;
 
     % down-left
-
     V = stability*xDiff(1);
     U = stability*(xDiff(3)-xDiff(2))* cos(pi/3);
 
-    arrow_length = 0;
+    arrow_length = -0.03;
+    
+    if (stability < 0)
+        arrow_length = 0.03;
+    end
+    
+    
     len = 0.00001;
     
     xMid = zeros(1,3);
@@ -236,7 +261,7 @@ function plot_arrows(i,j,x_star,delta,color,stability)
     if (x_star < 0.9)
         xMid = zeros(1,3);
         xMid(i) = 1-(1-x_star)/2+arrow_length;
-        xMid(j) = (1-x_star)/2;
+        xMid(j) = (1-x_star)/2-arrow_length;
                 
         [xM,yM] = UVW_to_XY(xMid);
         
@@ -246,3 +271,34 @@ function plot_arrows(i,j,x_star,delta,color,stability)
         set(ah,'Color',color);        
     end
 end
+
+
+function [type] = DetermineFixedPointType(x,A)
+
+    [~,lambda,~]=hessian(x,A);
+
+    lambda1 = real(lambda(1,1));
+    lambda2 = real(lambda(2,2));
+    
+    if ((lambda1== 0) && (lambda2==0))
+        % this is stable, but not asymptotically stable
+        type = 0;
+    elseif (((lambda1== 0) && (lambda2>0)) || ((lambda1>0) && (lambda2==0)) )
+        % one zero, one negative
+        type = 0;
+    elseif (((lambda1== 0) && (lambda2<0)) || ((lambda1< 0) && (lambda2==0)) )
+        % one zero, one positive == UNSTABLE
+        type = 2;
+    elseif lambda1*lambda2<0   
+        % this is a saddle point
+        type = 3;
+    elseif ((lambda1> 0) && (lambda2>0))
+        % this is a source
+        type = 4;
+    else
+        % this is an attractor
+        type = 1;
+    end
+end
+
+
