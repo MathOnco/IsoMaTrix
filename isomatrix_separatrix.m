@@ -1,4 +1,47 @@
-function[area_vec]=isomatrix_separatrix(AA)
+function[area_vec]=isomatrix_separatrix(A,varargin)
+
+    p = inputParser;
+    
+    %% set up default values for optional parameters: ('Color' and 'Labels')
+    color = [0,0,0]; % this is the line color
+    labels = {'','',''};
+    linestyle = '-';
+    linewidth = 2;
+    [nn,~] = size(A);
+    assert(3==nn,'Please provide a 3 by 3 matrix.')
+    
+    % validation of user input color:
+    vectorValidator = @(x) validateattributes(x,{'numeric'},{'size',[1,3]});
+    addParameter(p,'Color',color,vectorValidator)
+        
+    % validation of user input labels:
+    errorMsg1 = strcat('Labels error: please provide vector of size=',' ',num2str(nn),').'); 
+    errorMsg2 = 'Incorrect label formatting (must be cell-array).'; 
+    labelLength = @(x) assert(length(x)==nn,errorMsg1);
+    labelType = @(x) assert(length(x)==nn,errorMsg2);
+    addParameter(p,'Labels',labels);
+        
+    % read in optional parameters    
+    [nParams] = length(varargin);
+    for param = 1:1:(nParams/2)
+        ind = (param-1)*2 + 1;        
+        if strcmp(varargin{ind}, 'Color')
+            color=varargin{ind+1};
+        elseif strcmp(varargin{ind}, 'Labels')
+            labels=varargin{ind+1};
+            labelLength(labels);
+            labelType(labels);
+        elseif strcmp(varargin{ind}, 'LineStyle')
+            linestyle=varargin{ind+1};
+            assert(ischar(linestyle),'Incorrectly specified LineStyle.');
+        elseif strcmp(varargin{ind}, 'LineWidth')
+            linewidth=varargin{ind+1};
+        end
+    end
+    
+    h = gcf;
+    figure_number=h.Number;
+    figure(figure_number); hold on;
     
     % define the colors:
     blue = [0.2188,0.4531,0.6914];
@@ -16,7 +59,7 @@ function[area_vec]=isomatrix_separatrix(AA)
 
     S={[],[],[],[],[],[],[]};% store the seperatrices
     fp = {[],[],[],[],[],[],[]};% store the associated fixed points
-    [xedge,yedge]=checkedge(AA);%information of fixedpoint on the edge
+    [xedge,yedge]=checkedge(A);%information of fixedpoint on the edge
     if all(yedge(:)==0)
         % but not without color full:
         % plot the full area:            
@@ -25,11 +68,11 @@ function[area_vec]=isomatrix_separatrix(AA)
         return
     end
 
-    [xmid,ymid]=checkmid(AA);%information of fixedpoint in the middle
+    [xmid,ymid]=checkmid(A);%information of fixedpoint in the middle
 
     for i=1:3
         if yedge(i)==1
-            [D,lambda,V]=hessian(xedge(:,i)',AA);% hessian matrix, eigen values and eigen vectors of fixed points on the edge.
+            [D,lambda,V]=hessian(xedge(:,i)',A);% hessian matrix, eigen values and eigen vectors of fixed points on the edge.
             if lambda(1,1)*lambda(2,2)<0   % check if it's saddle point
                 if abs(V(i,1))>abs(V(i,2)) % getting the eigen vector which is not along the edge
                     k=1;
@@ -55,7 +98,7 @@ function[area_vec]=isomatrix_separatrix(AA)
                     x20=xedge(:,i)+e*V;
                 end
                 
-                x_overtime=traj(x20',AA,lambdak); % generate the seperetrix. eigen value determines you're going forward or backtracking.
+                x_overtime=traj(x20',A,lambdak); % generate the seperetrix. eigen value determines you're going forward or backtracking.
                 S{i}=[xedge(:,i) x_overtime]; % store the seperatrix staring from the saddle point, ending at xend.
             end
         end
@@ -66,7 +109,7 @@ function[area_vec]=isomatrix_separatrix(AA)
     
 
     if ymid==1
-        [~,lambda,V]=hessian(xmid',AA);                   % checking whether it's a saddle point in the middle.
+        [~,lambda,V]=hessian(xmid',A);                   % checking whether it's a saddle point in the middle.
         if imag(lambda(1,1))==0
             if lambda(1,1)*lambda(2,2)<0
 
@@ -74,19 +117,19 @@ function[area_vec]=isomatrix_separatrix(AA)
                 e=min([e,min(abs(ymid))/2]);
 
                 x20=xmid+e*V(:,1);
-                x_overtime=traj(x20',AA,lambda(1,1));
+                x_overtime=traj(x20',A,lambda(1,1));
                 S{4}=[xmid x_overtime];
 
                 x20=xmid-e*V(:,1);
-                x_overtime=traj(x20',AA,lambda(1,1));
+                x_overtime=traj(x20',A,lambda(1,1));
                 S{5}=[xmid x_overtime];
 
                 x20=xmid+e*V(:,2);
-                x_overtime=traj(x20',AA,lambda(2,2));
+                x_overtime=traj(x20',A,lambda(2,2));
                 S{6}=[xmid x_overtime];
 
                 x20=xmid-e*V(:,2);
-                x_overtime=traj(x20',AA,lambda(2,2));
+                x_overtime=traj(x20',A,lambda(2,2));
                 S{7}=[xmid x_overtime];
 
             end
@@ -176,8 +219,8 @@ function[area_vec]=isomatrix_separatrix(AA)
         full_trajectory = S{i}';
         [first,second] = minimizeAtIndex(full_trajectory(1,:), full_trajectory(end,:), 1);
 
-        [type1] = DetermineFixedPointType(first,AA);
-        [type2] = DetermineFixedPointType(second,AA);
+        [type1] = DetermineFixedPointType(first,A);
+        [type2] = DetermineFixedPointType(second,A);
 
 
         if (max(  min(first), min(second) ) > 0)
@@ -263,7 +306,7 @@ function[area_vec]=isomatrix_separatrix(AA)
                             full_trajectory2(:,1)';
                             full_trajectory2(:,end)'];
         [bool,bool_i]=AreAnyInternal(all_fixed_points);
-        [types] = DetermineFixedPointType(all_fixed_points,AA);
+        [types] = DetermineFixedPointType(all_fixed_points,A);
         
         if ((~bool) && min(types) < 3)
             % this is scenario 3: 3 stable edges, two separatrices
@@ -274,7 +317,7 @@ function[area_vec]=isomatrix_separatrix(AA)
             
             if (bool)
                 % scenario 1 or 4:
-                internal_type = DetermineFixedPointType(all_fixed_points(bool_i,:),AA);
+                internal_type = DetermineFixedPointType(all_fixed_points(bool_i,:),A);
                 if (internal_type == 1) % attractor
                     % this is scenario 4 (only 1 basin)
                     
@@ -404,7 +447,7 @@ function[area_vec]=isomatrix_separatrix(AA)
         % scenario 2:
         % -> 3 edge fixed points and 1 center fixed point which is a source
 
-        [type] = DetermineFixedPointType(xmid',AA);
+        [type] = DetermineFixedPointType(xmid',A);
         if (type == 4)
 
             % make them all start on edge:
@@ -490,7 +533,7 @@ function[area_vec]=isomatrix_separatrix(AA)
                                 S{i+1}(:,1)';
                                 S{i+1}(:,end)'];
                                 
-            types = DetermineFixedPointType(all_fixed_points,AA);
+            types = DetermineFixedPointType(all_fixed_points,A);
             
             if ((types(2) == 3) && (types(2) == 3))
                 % internal saddle:
@@ -546,9 +589,13 @@ function[area_vec]=isomatrix_separatrix(AA)
     for i = 1:7
         if ~isempty(S{i})
             [x_points,y_points] = UVW_to_XY(S{i}');
-            plot(x_points,y_points,'-', 'LineWidth', 2,'Color',[0,0,0]);hold on;
+            plot(x_points,y_points,linestyle, 'LineWidth', linewidth,'Color',color);hold on;
         end
     end
+    
+    % 
+    add_labels(labels);
+    
     
 end
 
