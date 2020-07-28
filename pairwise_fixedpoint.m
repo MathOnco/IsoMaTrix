@@ -1,4 +1,4 @@
-function [] = isomatrix_pairwise(A,varargin)
+function [] = pairwise_fixedpoint(A,varargin)
 
     %% set up default values for optional parameters: ('Color' and 'Labels')
     color = [0,0,0];

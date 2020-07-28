@@ -1,15 +1,18 @@
 function [] = isomatrix_fixedpoint(A,index,varargin)
 
     p = inputParser;
+    effective_index = 1;
     % if odd number of arguments:
     if ((mod(nargin,2) == 1) && (nargin > 2))
         % no user specified index, with extra arguments
         varargin  = [ { index }, varargin ];
         index = 1;
+        effective_index = 0;
         addOptional(p,'index',index);
     elseif (nargin == 1)
         % no user specified index, with no extra arguments
         index = 1;
+        effective_index = 0;
     end
     
     %% set up default values for optional parameters: ('Color' and 'Labels')
@@ -120,10 +123,15 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
                         plot_arrows(i,j,x_star,delta,color,1);
                         
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
+                        
                     else
                         % this interior point is unstable:
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
                         plot_arrows(i,j,x_star,delta,color,-1);
+                        
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
+
                     end
 
                 else
@@ -132,7 +140,6 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         plot(x_line + delta(1),y_line + delta(2),'-', 'LineWidth', 3,'Color',color);hold on; 
                     end
                     
-                    % testing
                     if (Ap(1,1) >= Ap(2,1))
                         plot_arrows(i,j,1,delta,color,1);
                     else
@@ -154,8 +161,10 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
 
                     if (Ap(1,1) >= Ap(2,1))
                         plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
                     else
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
                     end
 
                     x = zeros(1,3);
@@ -164,15 +173,12 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
 
                     if (Ap(2,2) > Ap(1,2))                    
                         plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
                     else
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
                     end
                 end
-                
-
-                %% plot a line over all three edges, just for cleanliness:
-                plot(x_line,y_line,'-', 'LineWidth', 3,'Color',[0,0,0]);hold on;
-
 
             end
 
@@ -198,23 +204,9 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
     if ((p_star > 0) && (q_star > 0))
         if ((p_star < 1) && (q_star < 1))
             if (((p_star+q_star) < 1))
-                x = [p_star,q_star,1-p_star-q_star];
-                
-                type = DetermineFixedPointType(x,A);
+                x = [p_star,q_star,1-p_star-q_star];                
                 [x_point,y_point] = UVW_to_XY(x);
-                if ((type <= 1))
-                    % stable:
-                    plot(x_point,y_point,'.', 'MarkerSize', s_ms,'Color',color);hold on;
-                elseif (type == 2)
-                    % unstable
-                    plot(x_point,y_point,'^','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
-                elseif (type == 3)
-                    % saddle (triangle)
-                    plot(x_point,y_point,'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
-                else
-                    % source (open circle)
-                    plot(x_point,y_point,'s','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);hold on;
-                end
+                CustomMark(x_point,y_point,x,A,color,effective_index);
             end
         end
     end
@@ -282,7 +274,7 @@ function [type] = DetermineFixedPointType(x,A)
     
     if ((lambda1== 0) && (lambda2==0))
         % this is stable, but not asymptotically stable
-        type = 0;
+        type = -1; % zero in the other file
     elseif (((lambda1== 0) && (lambda2>0)) || ((lambda1>0) && (lambda2==0)) )
         % one zero, one negative
         type = 0;
@@ -300,5 +292,121 @@ function [type] = DetermineFixedPointType(x,A)
         type = 1;
     end
 end
+
+
+
+
+% Adapted from:
+% - Salman Mashayekh (2020). Custom Marker Plot (https://www.mathworks.com/matlabcentral/fileexchange/39487-custom-marker-plot), MATLAB Central File Exchange. Retrieved July 28, 2020.
+
+function [] = CustomMark(xData,yData,x,A,color,index)
+
+
+    type = DetermineFixedPointType(x,A);    
+    
+    color1 = color;
+    color2 = [0,0,0]+0.3;
+    
+    if (type == 4)
+        % source: filled circle of white
+        color1 = [1,1,1];
+        color2 = [1,1,1];
+        
+    elseif (type == 1)
+        % attractor (sink): filled circle of color
+        color1 = color;
+        color2 = color;
+        
+    elseif (type == 3)
+        % saddle: color + white
+        color1 = color;
+        color2 = [1,1,1];
+        
+    elseif (type == -1)
+        % two zero eigenvalues
+        color1 = [0,0,0]+0.3;
+        color2 = [0,0,0]+0.3;
+        
+    elseif (type == 0)
+        % one zero eigenvalue, with stable eigenvalue
+        color1 = color;
+        color2 = [0,0,0]+0.3;
+        
+    elseif (type == 2)
+        % one zero eigenvalue, with unstable eigenvalue
+        color1 = color;
+        color2 = [1,1,1];
+    end
+
+    if (index==0)
+
+        rotate = 0;
+        
+        if (x(1) == 1)
+            rotate = pi/2;
+        elseif (x(2) == 1)
+            rotate = -pi/3 - pi/2;
+        elseif (x(3) == 1)
+            rotate = pi/3 + pi/2;
+        else
+            if (x(1) == 0)
+                rotate = pi/2;
+            elseif (x(2) == 0)
+                rotate = pi/6 + pi;
+            elseif (x(3) == 0)
+                rotate = -pi/6 - pi;
+            end
+        end
+        
+        r = 1/55;
+        markerSize = 1;
+
+        lw = 1.5;
+        markerEdgeColor = color;
+        markerFaceColor = color;
+        alpha = 1;
+
+        % color-filled circle, then gray circle
+        for i = 1:2
+            if i == 2
+                r = 1/70;%slightly smaller
+                alpha = 1;
+                markerFaceColor = color2;
+                phi2 = rotate:0.01:(pi+rotate);
+                markerDataX = r*cos(phi2);
+                markerDataY = r*sin(phi2);
+            else
+                markerFaceColor = color1;
+                phi1 = 0:0.01:(2*pi);
+                markerDataX = r*cos(phi1);
+                markerDataY = r*sin(phi1);
+            end
+
+            xData = reshape(xData,length(xData),1) ;
+            yData = reshape(yData,length(yData),1) ;
+            markerDataX = markerSize * reshape(markerDataX,1,length(markerDataX)) ;
+            markerDataY = markerSize * reshape(markerDataY,1,length(markerDataY)) ;
+
+            vertX = repmat(markerDataX,length(xData),1) ; vertX = vertX(:) ;
+            vertY = repmat(markerDataY,length(yData),1) ; vertY = vertY(:) ;
+
+            vertX = repmat(xData,length(markerDataX),1) + vertX ;
+            vertY = repmat(yData,length(markerDataY),1) + vertY ;
+            faces = 0:length(xData):length(xData)*(length(markerDataY)-1) ;
+            faces = repmat(faces,length(xData),1) ;
+            faces = repmat((1:length(xData))',1,length(markerDataY)) + faces ;
+
+            patchHndl = patch('Faces',faces,'Vertices',[vertX vertY],'FaceAlpha',alpha);
+            
+            if (i>1)
+                set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor','none') ;
+            else
+                set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor',markerEdgeColor,'LineWidth',lw);
+            end
+        end
+    end
+end
+
+
 
 

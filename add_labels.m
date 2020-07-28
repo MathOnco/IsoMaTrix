@@ -11,14 +11,38 @@ function [] = add_labels(label_string)
     delta = 0.1; % was 0.07
     text([L/2,-delta,L+delta],[H+delta,-tan(pi/6)*delta,-tan(pi/6)*delta],label_string, 'HorizontalAlignment','center', 'VerticalAlignment','middle', 'fontsize', 36 );
     
-    %% plot triangle boundaries:
+    %% plot triangle boundaries (behind everything)
     lw = 5;
     H = (1/2)*tan(60*pi/180);
+
     plot([0,1/2],[0,H],'-k','LineWidth',lw);
     plot([1/2,1],[H,0],'-k','LineWidth',lw);
     plot([0,1],[0,0],'-k','LineWidth',lw);
     plot([0,1/2,1],[0,H,0],'.k','MarkerSize',15);
+    chi=get(gca, 'Children');
+    set(gca,'Children',[chi(4:end);chi(1:4)]);
+    
+    
+    %% move contours to bottom
+    chi=get(gca, 'Children');
+    indices = [];
+    j=1;
+    for i = 1:length(chi)        
+        t = chi(i);
+        if strcmp(get(t,'Type'),'contour')
+            indices(j) = i;
+            j = j + 1;
+        end
+    end
+    
+    if ~isempty(indices)
+        chi_bottom = chi(indices);
+        chi_leftover = chi;
+        chi_leftover(indices) = [];
+        set(gca,'Children',[chi_leftover;chi_bottom]);
+    end
 
+    % set y-limits:
     del = (1 - H)/2;
     mul = 1;
     xl = xlim;

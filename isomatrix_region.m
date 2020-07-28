@@ -141,12 +141,12 @@ function [] = isomatrix_region(A,varargin)
     
     L = 1;
     H = (L/2)*tan(60*pi/180);
-    d1 = 0.26;
+    d1 = 0.3;
     d2 = 0.18;
     
-    legend_string = {'($\dot{x}_1, \dot{x}_2, \dot{x}_3$)'};
+    legend_string = {'(1, 2, 3)'};
     if ~isempty(labels{1}) 
-         legend_string = {strcat('($\dot{x}_',labels{1}, ', \dot{x}_',labels{2}, ', \dot{x}_',labels{3},'$)')};
+        legend_string = {strcat('(',labels{1}, ', ',labels{2}, ', ',labels{3},')')};
     end
     
     text(L+d1,H+d2,legend_string, 'HorizontalAlignment','center', 'VerticalAlignment','middle', 'fontsize', 18, 'Interpreter','Latex');

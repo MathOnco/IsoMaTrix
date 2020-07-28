@@ -30,8 +30,8 @@ end
 figure(1); hold on;
 title('Total Velocity Magnitude');
 isomatrix_velocity(A,1:3);
-isomatrix_fixedpoint(A,'Color',[0,0,0]);
 isomatrix_quiver(A,'Color',[0,0,0]);
+isomatrix_fixedpoint(A,'Color',[0,0,0]);
 add_labels(labels);
 
 %% velocity of type 1 only
@@ -41,16 +41,24 @@ for id = 1:3
     title_str = strcat('Type-', num2str(id),' Velocity');
     title(title_str);
     isomatrix_velocity(A,id);
-    isomatrix_fixedpoint(A,'Color',[0,0,0]);
     isomatrix_isocline(A,id,'Color',[0,0,0],'LineStyle',':');
+    isomatrix_fixedpoint(A,'Color',[0,0,0]);
     add_labels(labels);
 end
 
 %% split domain into regions
 figure(5); hold on;
 title('IsoMaTrix Regions');
-isomatrix_fixedpoint(A,'Color',[0,0,0]);
 isomatrix_region(A);
+isomatrix_fixedpoint(A,'Color',[0,0,0]);
+add_labels(labels);
+
+%% split domain into regions
+figure(6); hold on;
+title('IsoMaTrix Separatrices');
+isomatrix_separatrix(A,'Color',[0,0,0]);
+isomatrix_quiver(A,'Color',[0,0,0]);
+isomatrix_fixedpoint(A,'Color',[0,0,0]);
 add_labels(labels);
 
 end
