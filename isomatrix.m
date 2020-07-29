@@ -35,7 +35,6 @@ isomatrix_fixedpoint(A,'Color',[0,0,0]);
 add_labels(labels);
 
 %% velocity of type 1 only
-
 for id = 1:3
     figure(id + 1); hold on;
     title_str = strcat('Type-', num2str(id),' Velocity');

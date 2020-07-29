@@ -211,7 +211,48 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
         end
     end
     
+    marker_legend(effective_index,color);
+    
     add_labels(labels);
+end
+
+function marker_legend(effective_index,color)
+    if (effective_index==0)
+
+        dark = [0,0,0]+0.3;
+
+        %saddle
+        y0 = 0.9;
+        fixed_point_marker(0,-0.1,y0,color,color,[1,1,1]);
+        text([-0.05],[y0],'Saddle', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        %source
+        y0 = 0.85;
+        fixed_point_marker(0,-0.1,y0,color,[1,1,1],[1,1,1]);
+        text([-0.05],[y0],'Source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        % sink
+        y0 = 0.8;
+        fixed_point_marker(0,-0.1,y0,color,color,color);
+        text([-0.05],[y0],'Sink', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        % two zero eigenvalues
+        y0 = 0.75;
+        fixed_point_marker(0,-0.1,y0,color,dark,dark);
+        text([-0.05],[y0],'Neutral', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        % one zero, one positive
+        y0 = 0.7;
+        fixed_point_marker(0,-0.1,y0,color,[1,1,1],dark);
+        text([-0.05],[y0],'Semi-source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        % one zero, one negative
+        y0 = 0.65;
+        fixed_point_marker(0,-0.1,y0,color,color,dark);
+        text([-0.05],[y0],'Semi-sink', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+    end
+
 end
 
 function plot_arrows(i,j,x_star,delta,color,stability)
@@ -293,15 +334,10 @@ function [type] = DetermineFixedPointType(x,A)
     end
 end
 
-
-
-
 % Adapted from:
 % - Salman Mashayekh (2020). Custom Marker Plot (https://www.mathworks.com/matlabcentral/fileexchange/39487-custom-marker-plot), MATLAB Central File Exchange. Retrieved July 28, 2020.
 
 function [] = CustomMark(xData,yData,x,A,color,index)
-
-
     type = DetermineFixedPointType(x,A);    
     
     color1 = color;
@@ -358,55 +394,56 @@ function [] = CustomMark(xData,yData,x,A,color,index)
             end
         end
         
-        r = 1/55;
-        markerSize = 1;
-
-        lw = 1.5;
-        markerEdgeColor = color;
-        markerFaceColor = color;
-        alpha = 1;
-
-        % color-filled circle, then gray circle
-        for i = 1:2
-            if i == 2
-                r = 1/70;%slightly smaller
-                alpha = 1;
-                markerFaceColor = color2;
-                phi2 = rotate:0.01:(pi+rotate);
-                markerDataX = r*cos(phi2);
-                markerDataY = r*sin(phi2);
-            else
-                markerFaceColor = color1;
-                phi1 = 0:0.01:(2*pi);
-                markerDataX = r*cos(phi1);
-                markerDataY = r*sin(phi1);
-            end
-
-            xData = reshape(xData,length(xData),1) ;
-            yData = reshape(yData,length(yData),1) ;
-            markerDataX = markerSize * reshape(markerDataX,1,length(markerDataX)) ;
-            markerDataY = markerSize * reshape(markerDataY,1,length(markerDataY)) ;
-
-            vertX = repmat(markerDataX,length(xData),1) ; vertX = vertX(:) ;
-            vertY = repmat(markerDataY,length(yData),1) ; vertY = vertY(:) ;
-
-            vertX = repmat(xData,length(markerDataX),1) + vertX ;
-            vertY = repmat(yData,length(markerDataY),1) + vertY ;
-            faces = 0:length(xData):length(xData)*(length(markerDataY)-1) ;
-            faces = repmat(faces,length(xData),1) ;
-            faces = repmat((1:length(xData))',1,length(markerDataY)) + faces ;
-
-            patchHndl = patch('Faces',faces,'Vertices',[vertX vertY],'FaceAlpha',alpha);
-            
-            if (i>1)
-                set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor','none') ;
-            else
-                set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor',markerEdgeColor,'LineWidth',lw);
-            end
-        end
+        fixed_point_marker(rotate,xData,yData,color,color1,color2);
     end
 end
 
+function [] = fixed_point_marker(rotate,xData,yData,color,color1,color2)
+    r = 1/55;
+    markerSize = 1;
+
+    lw = 1.5;
+    markerEdgeColor = color;
+    markerFaceColor = color;
+
+    % color-filled circle, then gray circle
+    for i = 1:2
+        if i == 2
+            r = 1/70;%slightly smaller
+            markerFaceColor = color2;
+            phi2 = rotate:0.01:(pi+rotate);
+            markerDataX = r*cos(phi2);
+            markerDataY = r*sin(phi2);
+        else
+            markerFaceColor = color1;
+            phi1 = 0:0.01:(2*pi);
+            markerDataX = r*cos(phi1);
+            markerDataY = r*sin(phi1);
+        end
+
+        xData = reshape(xData,length(xData),1) ;
+        yData = reshape(yData,length(yData),1) ;
+        markerDataX = markerSize * reshape(markerDataX,1,length(markerDataX)) ;
+        markerDataY = markerSize * reshape(markerDataY,1,length(markerDataY)) ;
+
+        vertX = repmat(markerDataX,length(xData),1) ; vertX = vertX(:) ;
+        vertY = repmat(markerDataY,length(yData),1) ; vertY = vertY(:) ;
+
+        vertX = repmat(xData,length(markerDataX),1) + vertX ;
+        vertY = repmat(yData,length(markerDataY),1) + vertY ;
+        faces = 0:length(xData):length(xData)*(length(markerDataY)-1) ;
+        faces = repmat(faces,length(xData),1) ;
+        faces = repmat((1:length(xData))',1,length(markerDataY)) + faces ;
+
+        patchHndl = patch('Faces',faces,'Vertices',[vertX vertY]);
+
+        if (i>1)
+            set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor','none') ;
+        else
+            set(patchHndl,'FaceColor',markerFaceColor,'EdgeColor',markerEdgeColor,'LineWidth',lw);
+        end
+    end
+end
 
 
 
