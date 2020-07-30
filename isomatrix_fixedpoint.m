@@ -206,7 +206,8 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
             if (((p_star+q_star) < 1))
                 x = [p_star,q_star,1-p_star-q_star];                
                 [x_point,y_point] = UVW_to_XY(x);
-                CustomMark(x_point,y_point,x,A,color,effective_index);
+                % always plot the internal fixed point (eff_index=0)
+                CustomMark(x_point,y_point,x,A,color,0); 
             end
         end
     end
@@ -218,39 +219,44 @@ end
 
 function marker_legend(effective_index,color)
     if (effective_index==0)
+        
+        % order:saddle, semisource, source (these 6 could also be reversed).
 
-        dark = [0,0,0]+0.3;
+        dark = [0,0,0]+0.5;
 
-        %saddle
+        %sink
         y0 = 0.9;
-        fixed_point_marker(0,-0.1,y0,color,color,[1,1,1]);
-        text([-0.05],[y0],'Saddle', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
-
-        %source
-        y0 = 0.85;
-        fixed_point_marker(0,-0.1,y0,color,[1,1,1],[1,1,1]);
-        text([-0.05],[y0],'Source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
-
-        % sink
-        y0 = 0.8;
         fixed_point_marker(0,-0.1,y0,color,color,color);
         text([-0.05],[y0],'Sink', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
 
+        % one zero, one negative
+        y0 = 0.85;
+        fixed_point_marker(0,-0.1,y0,color,color,dark);
+        text([-0.05],[y0],'Semi-sink', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
         % two zero eigenvalues
-        y0 = 0.75;
+        y0 = 0.8;
         fixed_point_marker(0,-0.1,y0,color,dark,dark);
         text([-0.05],[y0],'Neutral', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
 
+        % saddle
+        y0 = 0.75;
+        fixed_point_marker(0,-0.1,y0,color,color,[1,1,1]);
+        text([-0.05],[y0],'Saddle', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+
+        
+        
         % one zero, one positive
         y0 = 0.7;
         fixed_point_marker(0,-0.1,y0,color,[1,1,1],dark);
         text([-0.05],[y0],'Semi-source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
-
-        % one zero, one negative
+        
+        %source
         y0 = 0.65;
-        fixed_point_marker(0,-0.1,y0,color,color,dark);
-        text([-0.05],[y0],'Semi-sink', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
+        fixed_point_marker(0,-0.1,y0,color,[1,1,1],[1,1,1]);
+        text([-0.05],[y0],'Source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
 
+        
     end
 
 end
