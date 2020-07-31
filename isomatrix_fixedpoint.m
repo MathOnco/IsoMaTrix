@@ -125,12 +125,29 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         
                         CustomMark(x_point,y_point,x,A,color,effective_index);
                         
+                        
+                        % either end is unstable:
+                        for k = [i,j]
+                            x = zeros(1,3);
+                            x(k) = 1;
+                            [x_point,y_point] = UVW_to_XY(x);
+                            plot(x_point+delta(1),y_point+delta(2),'o', 'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);hold on;
+                        end
+                        
                     else
                         % this interior point is unstable:
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
                         plot_arrows(i,j,x_star,delta,color,-1);
                         
                         CustomMark(x_point,y_point,x,A,color,effective_index);
+                        
+                        % either end is stable:
+                        for k = [i,j]
+                            x = zeros(1,3);
+                            x(k) = 1;
+                            [x_point,y_point] = UVW_to_XY(x);
+                            plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
+                        end
 
                     end
 
@@ -146,42 +163,40 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         plot_arrows(i,j,1,delta,color,-1);
                     end
                     
-                end
-
-                % if not equal, determine other stable point:
-                if ((Ap(1,1) == Ap(2,1)) && (Ap(1,2) == Ap(2,2)))
                     
-                else
-                
-                    % determine left stability:
-                    x = zeros(1,3);            
-                    x(i) = 1;
-                    [x_point,y_point] = UVW_to_XY(x);
-
-
-                    if (Ap(1,1) >= Ap(2,1))
-                        plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
+                    % i dominates j, or j dominates i:
+                    if ((Ap(1,1) >= Ap(2,1)) && (Ap(1,2) >= Ap(2,2)))
+                        x = zeros(1,3);
+                        x(i) = 1;
+                        [x_point,y_point] = UVW_to_XY(x);
+                    	plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
                         CustomMark(x_point,y_point,x,A,color,effective_index);
+                    
+                        % j is unstable:
+                        x = zeros(1,3);
+                        x(j) = 1;
+                        [x_point,y_point] = UVW_to_XY(x);
+                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
+                        CustomMark(x_point,y_point,x,A,color,effective_index);
+                        
                     else
-                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
+                        % j is stable:
+                        x = zeros(1,3);
+                        x(j) = 1;
+                        [x_point,y_point] = UVW_to_XY(x);
+                        plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
+                    
                         CustomMark(x_point,y_point,x,A,color,effective_index);
+                        
+                        % i is unstable:
+                        x = zeros(1,3);
+                        x(i) = 1;
+                        [x_point,y_point] = UVW_to_XY(x);
+                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
+                        CustomMark(x_point,y_point,x,A,color,effective_index);                    
                     end
-
-                    x = zeros(1,3);
-                    x(j) = 1;
-                    [x_point,y_point] = UVW_to_XY(x);
-
-                    if (Ap(2,2) > Ap(1,2))                    
-                        plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on; % (left side is stable)
-                        CustomMark(x_point,y_point,x,A,color,effective_index);
-                    else
-                        plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'MarkerFaceColor',[1,1,1],'MarkerEdgeColor',color);
-                        CustomMark(x_point,y_point,x,A,color,effective_index);
-                    end
-                end
-
+                end                
             end
-
         end  
     end
 
