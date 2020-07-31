@@ -66,6 +66,11 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
 
     ylim([-REL_DIST*index,(1+REL_DIST*index)/sin(pi/3)]);
     xlim([-REL_DIST*index,1+REL_DIST*index]);
+    
+    corner_stability={{},{},{}};
+    NEUTRAL = 0;
+    STABLE = 1;
+    UNSTABLE = 2;
 
     for i = [1,2]
         for d = [1,2]
@@ -101,6 +106,9 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         plot(x_line + delta(1),y_line + delta(2),':', 'LineWidth', 3,'Color',color);hold on; 
                     end
 
+                    corner_stability{i}{end+1}=NEUTRAL;
+                    corner_stability{j}{end+1}=NEUTRAL;
+                    
                 % interior point
                 elseif ((Ap(1,1)-Ap(2,1))*(Ap(1,2)-Ap(2,2)) < 0)
 
@@ -132,6 +140,7 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                             x(k) = 1;
                             [x_point,y_point] = UVW_to_XY(x);
                             plot(x_point+delta(1),y_point+delta(2),'o', 'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);hold on;
+                            corner_stability{k}{end+1}=UNSTABLE;
                         end
                         
                     else
@@ -147,6 +156,7 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                             x(k) = 1;
                             [x_point,y_point] = UVW_to_XY(x);
                             plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
+                            corner_stability{k}{end+1}=STABLE;
                         end
 
                     end
@@ -170,14 +180,14 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         x(i) = 1;
                         [x_point,y_point] = UVW_to_XY(x);
                     	plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
-                        CustomMark(x_point,y_point,x,A,color,effective_index);
-                    
+                        corner_stability{i}{end+1}=STABLE;
+                                            
                         % j is unstable:
                         x = zeros(1,3);
                         x(j) = 1;
                         [x_point,y_point] = UVW_to_XY(x);
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
-                        CustomMark(x_point,y_point,x,A,color,effective_index);
+                        corner_stability{j}{end+1}=UNSTABLE;
                         
                     else
                         % j is stable:
@@ -185,20 +195,65 @@ function [] = isomatrix_fixedpoint(A,index,varargin)
                         x(j) = 1;
                         [x_point,y_point] = UVW_to_XY(x);
                         plot(x_point+delta(1),y_point+delta(2),'.', 'MarkerSize', s_ms,'Color',color);hold on;
-                    
-                        CustomMark(x_point,y_point,x,A,color,effective_index);
+                        corner_stability{j}{end+1}=STABLE;
                         
                         % i is unstable:
                         x = zeros(1,3);
                         x(i) = 1;
                         [x_point,y_point] = UVW_to_XY(x);
                         plot(x_point + delta(1),y_point + delta(2),'o','LineWidth', 1,'MarkerSize', us_ms,'Color',[1,1,1],'MarkerEdgeColor',color,'MarkerFaceColor',[1,1,1]);
-                        CustomMark(x_point,y_point,x,A,color,effective_index);                    
+                        corner_stability{i}{end+1}=UNSTABLE;
                     end
                 end                
             end
         end  
     end
+    
+    dark = [0,0,0]+0.5;
+    
+    for corner = [1,2,3]
+        x = zeros(1,3);
+        x(corner) = 1;
+        [x_point,y_point] = UVW_to_XY(x);
+
+        c1 = corner_stability{corner}{1};
+        c2 = corner_stability{corner}{2};
+
+        if (effective_index==0)
+            rotate = 0;
+            if ((c1 == STABLE)&&(c2 == STABLE))
+                % sink
+                fixed_point_marker(rotate,x_point,y_point,color,color,color);
+            elseif ((c1 == UNSTABLE)&&(c2 == UNSTABLE))
+                % source
+                fixed_point_marker(rotate,x_point,y_point,color,[1,1,1],[1,1,1]);
+            elseif ((c1 == STABLE)&&(c2 == UNSTABLE))
+                % saddle
+                fixed_point_marker(rotate,x_point,y_point,color,color,[1,1,1]);
+            elseif ((c1 == UNSTABLE)&&(c2 == STABLE))
+                % saddle
+                fixed_point_marker(rotate,x_point,y_point,color,color,[1,1,1]);
+            elseif ((c1 == STABLE)&&(c2 == NEUTRAL))
+                % semisink  
+                fixed_point_marker(rotate,x_point,y_point,color,color,dark);
+            elseif ((c1 == NEUTRAL)&&(c2 == STABLE))
+                % semisink  
+                fixed_point_marker(rotate,x_point,y_point,color,color,dark);
+            elseif ((c1 == NEUTRAL)&&(c2 == UNSTABLE))
+                % semisource
+                fixed_point_marker(rotate,x_point,y_point,color,[1,1,1],dark);
+            elseif ((c1 == UNSTABLE)&&(c2 == NEUTRAL))
+                % semisource
+                fixed_point_marker(rotate,x_point,y_point,color,[1,1,1],dark);
+            elseif ((c1 == NEUTRAL)&&(c2 == NEUTRAL))
+                % semisource
+                fixed_point_marker(rotate,x_point,y_point,color,dark,dark);
+            end  
+        end
+    end
+    
+    
+    
 
     %% solve Ax = b for internal equil
     Apq = zeros(2,2);
@@ -271,7 +326,6 @@ function marker_legend(effective_index,color)
         fixed_point_marker(0,-0.1,y0,color,[1,1,1],[1,1,1]);
         text([-0.05],[y0],'Source', 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 14 );
 
-        
     end
 
 end

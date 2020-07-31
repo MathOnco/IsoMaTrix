@@ -196,7 +196,6 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
     % plot the full area:            
     [x_points,y_points] = UVW_to_XY(full_area');
     AFULL=FillArea(x_points, y_points, red);
-
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASES = 0 
     if (cases == 0) % this should be one global equil which is on an edge:
@@ -248,7 +247,6 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
                     end
 
                 else % neither fixed point is on the bottom: 
-                    full_trajectory(1,3)
                     if (full_trajectory(1,3)==0)
                         % goes from 1-2 edge to 1-3 edge:
                         % left-to-right:
@@ -286,6 +284,9 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
         % scenario 4:
         % -> internal attractor, 2 stable edges
         
+        % scenario 5:
+        % -> edge saddle to internal attractor, treat it like 1 separatrix
+        
         case_indices = [0,0];
 
         % which two cases:
@@ -313,13 +314,76 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
             % 1 basin of attraction (keep it red)
             
             
-        else % could be scenario 1 or 2 or 4:
+        else % could be scenario 1 or 2 or 4 or 5:
             
             if (bool)
                 % scenario 1 or 4:
                 internal_type = DetermineFixedPointType(all_fixed_points(bool_i,:),A);
                 if (internal_type == 1) % attractor
                     % this is scenario 4 (only 1 basin)
+                    
+                    % or, check if this is scenario 5:
+                    % dealing only with full_trajectory1;
+                    
+                    min1 = max(min(full_trajectory1(:,1)), min(full_trajectory1(:,end)));
+                    min2 = max(min(full_trajectory2(:,1)), min(full_trajectory2(:,end)));
+                    
+                    full_trajectory = full_trajectory1;
+                    
+                    if min1 > min2
+                        % trajectory 1 has the internal pt:
+                        full_trajectory = full_trajectory2;
+                    end
+                    
+                    % ensure 1st starts on edge:
+                    if min(full_trajectory(:,1))>0
+                        full_trajectory = fliplr(full_trajectory);
+                    end
+                    
+                    [first,second] = minimizeAtIndex(full_trajectory(:,1)', full_trajectory(:,end)', 1);
+                                        
+                    % if first is on the bottom
+                    if (first(1) == 0)
+                        if (second(3)==0)
+                            % goes from 1-2 edge to 2-3 edge:
+                            bottom_area = [x20,full_trajectory,x20];                            
+                            [x_points,y_points] = UVW_to_XY(bottom_area');
+                            b1=FillArea(x_points, y_points, blue);
+                            area_vec(1)=area_vec(1)-b1/AFULL;
+                            area_vec(3)=area_vec(3)+b1/AFULL;                        
+                        else
+                            % goes from 1-3 edge to 2-3 edge:
+                            bottom_area = [x30,full_trajectory,x30];
+                            [x_points,y_points] = UVW_to_XY(bottom_area');
+                            b1=FillArea(x_points, y_points, blue);
+                            area_vec(1)=area_vec(1)-b1/AFULL;
+                            area_vec(3)=area_vec(3)+b1/AFULL;
+                        end
+
+                    else % neither fixed point is on the bottom: 
+                        if (full_trajectory(1,3)==0)
+                            % goes from 1-2 edge to 1-3 edge:
+                            % left-to-right:
+                            % corner -> S -> other corner -> original corner
+                            bottom_area = [x20,full_trajectory,x30,x20];  
+                            [x_points,y_points] = UVW_to_XY(bottom_area');
+                            b1=FillArea(x_points, y_points, blue);
+                            area_vec(1)=area_vec(1)-b1/AFULL;
+                            area_vec(3)=area_vec(3)+b1/AFULL;
+                        else
+                            % right-to-left:
+                            % corner -> S -> other corner -> original corner
+                            bottom_area = [x30,full_trajectory,x20,x30];
+                            [x_points,y_points] = UVW_to_XY(bottom_area');
+                            b1=FillArea(x_points, y_points, blue);
+                            area_vec(1)=area_vec(1)-b1/AFULL;
+                            area_vec(3)=area_vec(3)+b1/AFULL;
+                        end    
+                    end
+                    
+                    
+                    
+                    
                     
                 else
                     % scenario 1:
