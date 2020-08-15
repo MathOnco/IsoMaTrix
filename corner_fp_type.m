@@ -42,9 +42,9 @@ end
 
 %transform matrix if analyzing strat 2 or 3
 if strat_num == 2
-    A = [0, 1, 0; 1, 0, 0; 0, 0, 1]*A*[0, 1, 0; 1, 0, 0; 0, 0, 1]; %rotate the matrix
+    A = [0, 1, 0; 1, 0, 0; 0, 0, 1]*A*[0, 1, 0; 1, 0, 0; 0, 0, 1]'; %rotate the matrix
 elseif strat_num == 3
-    A = [0, 0, 1; 0, 1, 0; 1, 0, 0]*A*[0, 0, 1; 0, 1, 0; 1, 0, 0]; %rotate the matrix
+    A = [0, 0, 1; 0, 1, 0; 1, 0, 0]*A*[0, 0, 1; 0, 1, 0; 1, 0, 0]'; %rotate the matrix
 end
 
 %%ANALYSIS STARTS
