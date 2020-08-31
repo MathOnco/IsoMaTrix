@@ -1,8 +1,8 @@
-function cfp_val = corner_fp_type(A,strat_num)
-%cfp_val = corner_fp_type(A,strat_num)
+function cfp_val = corner_fp_type(A,id)
+%cfp_val = corner_fp_type(A,id)
 %   Takes as input:
 %       A - square 3-by-3 game matrix
-%       strat_num - strategy to analyze (1, 2, or 3; default: 1)
+%       id - strategy to analyze (1, 2, or 3; default: 1)
 %   Returns the stability value (cfp_val) of monomorphic population of type
 %   strat_num when invaded by any combination of other two strategies. 
 %   Possible values for cfp_val:
@@ -15,14 +15,14 @@ function cfp_val = corner_fp_type(A,strat_num)
 
 %check strat_num and number of inputs
 if (nargin == 1)
-    strat_num = 1;
+    id = 1;
 elseif (nargin == 0)
     fprintf('Corner analysis failed: provide a 3-by-3 game matrix A \n')
     return
 else
-    if ((strat_num ~= 3) && (strat_num ~= 2) && (strat_num ~= 1))
+    if ((id ~= 3) && (id ~= 2) && (id ~= 1))
         fprintf('Corner analysis warning: unclear strat_num, defaulting to 1')
-        strat_num = 1; %default to analyzing first strategy
+        id = 1; %default to analyzing first strategy
     end
 end
 
@@ -34,16 +34,17 @@ if (sA(1,1) ~= 3) || (sA(1,2) ~= 3)
 end
 
 %check if matrix is degenerage (i.e. equivalent to the neutral zero-game)
-if min(A,[],'all') == max(A,[],'all')
+% if min(A,[],'all') == max(A,[],'all')
+if min(A(:)) == max(A(:))
     fprintf('Corner analysis warning: A is a neutral game')
     cfp_val = NaN;
     return
 end
 
 %transform matrix if analyzing strat 2 or 3
-if strat_num == 2
+if id == 2
     A = [0, 1, 0; 1, 0, 0; 0, 0, 1]*A*[0, 1, 0; 1, 0, 0; 0, 0, 1]'; %rotate the matrix
-elseif strat_num == 3
+elseif id == 3
     A = [0, 0, 1; 0, 1, 0; 1, 0, 0]*A*[0, 0, 1; 0, 1, 0; 1, 0, 0]'; %rotate the matrix
 end
 
@@ -90,7 +91,7 @@ else
         elseif ((min(gain_roots) == 0) || (max(gain_roots) == 1))
             %if degenerate case touching at 0 or 1
             %then semi-source or semi-sink based on sign of invader's quadratic term
-            cfp_val = sign(inv_fit(1))
+            cfp_val = sign(inv_fit(1));
         else %no internal root is achievable
             cfp_val = fp_val_2 + fp_val_3;
             if (fp_val_2 == 0) && (fp_val_3 == 0) %if both neutral

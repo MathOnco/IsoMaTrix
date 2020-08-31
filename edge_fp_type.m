@@ -1,5 +1,5 @@
-function fp_val = edge_fp_type(A,strat_num)
-%fp_val = edge_fp_type(A,strat_num)
+function fp_val = edge_fp_type(A,id)
+%fp_val = edge_fp_type(A,id)
 %   Takes as input:
 %       A - square 2-by-2 game matrix
 %       strat_num - strategy to analyze (1 or 2; default: 1)
@@ -14,14 +14,14 @@ function fp_val = edge_fp_type(A,strat_num)
 
 %check strat_num and number of inputs
 if (nargin == 1)
-    strat_num = 1;
+    id = 1;
 elseif (nargin == 0)
     fprintf('Edge analysis failed: provide a 2-by-2 game matrix A \n')
     return
 else
-    if (strat_num ~= 2) && (strat_num ~= 1)
+    if (id ~= 2) && (id ~= 1)
         fprintf('Edge analysis warning: unclear strat_num, defaulting to 1')
-        strat_num = 1; %default to analyzing first strategy
+        id = 1; %default to analyzing first strategy
     end
 end
 
@@ -34,7 +34,7 @@ if (sA(1,1) ~= 2) || (sA(1,2) ~= 2)
 end
 
 %transform matrix if analyzing strat 2
-if strat_num == 2
+if id == 2
     A = [0, 1; 1, 0]*A*[0, 1; 1, 0]; %rotate the matrix
 end
 
