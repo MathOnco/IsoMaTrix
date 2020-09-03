@@ -65,6 +65,7 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
         % plot the full area:            
         [x_points,y_points] = UVW_to_XY(full_area');
         FillArea(x_points, y_points, red);
+        add_labels(labels);
         return
     end
 
@@ -657,7 +658,8 @@ function[area_vec]=isomatrix_separatrix(A,varargin)
         end
     end
     
-    % 
+    % TK
+%     labels
     add_labels(labels);
     
     
