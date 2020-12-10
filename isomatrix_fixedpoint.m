@@ -365,6 +365,18 @@ function [type] = DetermineFixedPointType(x,A)
     lambda1 = real(lambda(1,1));
     lambda2 = real(lambda(2,2));
     
+    % fix numerical error for 0 eigenvalues
+    eps = 1e-10;
+    
+    if (abs(lambda1) < eps)
+        lambda1 = 0;
+    end
+    
+    if (abs(lambda2) < eps)
+        lambda2 = 0;
+    end
+    
+    
     if ((lambda1== 0) && (lambda2==0))
         % this is stable, but not asymptotically stable
         type = -1; % zero in the other file
@@ -390,7 +402,7 @@ end
 % - Salman Mashayekh (2020). Custom Marker Plot (https://www.mathworks.com/matlabcentral/fileexchange/39487-custom-marker-plot), MATLAB Central File Exchange. Retrieved July 28, 2020.
 
 function [] = CustomMark(xData,yData,x,A,color,index)
-    type = DetermineFixedPointType(x,A);
+    type = DetermineFixedPointType(x,A)
     
     color1 = color;
     color2 = [0,0,0]+0.3;
