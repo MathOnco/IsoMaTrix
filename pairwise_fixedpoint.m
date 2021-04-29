@@ -61,14 +61,30 @@ function [] = pairwise_fixedpoint(A,varargin)
                 line_x(:,jj) = 1-line';
                 [x_line,y_line] = UVW_to_XY(line_x);
                 
-                % label left / right
+                %% this is the subgame:
+                Ap = [A(i,i), A(i,j); A(j,i), A(j,j)];
                 
+                %% add gradient of selection:
+                xfit=0:0.001:1;
+                [~,xdot2,~] = find_xdot(xfit,Ap);
+                MAX_MIN = max(abs(min(xdot2)),max(xdot2));                
+                myNorm = REL_DIST*1000*MAX_MIN;
+                plot(xfit + delta(1),xdot2./myNorm + delta(2),'-', 'LineWidth', 1.5,'Color',color);hold on;
+                
+                % color area beneath the gradient curve:
+                xx = xfit + delta(1);                
+                curve1 = xx.*0 + delta(2);
+                curve2 = xdot2./myNorm + delta(2);
+                inBetween = [curve1, fliplr(curve2)];
+                x2 = [xx, fliplr(xx)];
+                fill(x2, inBetween, color/2,'FaceAlpha',0.2,'LineStyle','none');
+                
+                % label left / right
                 del = 0.04;
                 text(-del,y_line(1)+ delta(2),labels{i}, 'HorizontalAlignment','right', 'VerticalAlignment','middle', 'fontsize', 18 );
                 text(1+del,y_line(1)+ delta(2),labels{j}, 'HorizontalAlignment','left', 'VerticalAlignment','middle', 'fontsize', 18 );
 
-                %% this is the subgame:
-                Ap = [A(i,i), A(i,j); A(j,i), A(j,j)];
+                
 
                 % equal competition
                 if ((Ap(1,1) == Ap(2,1)) && (Ap(1,2) == Ap(2,2)))
@@ -202,3 +218,17 @@ function plot_arrows(i,j,x_star,delta,color,stability)
     end
 
 end
+
+
+
+%% adding this (2 by 2) xdot function:
+function [xdot1,xdot2,phi] = find_xdot(x,A)   
+    f1 = A(1,1).*(1-x) + A(1,2).*x;
+    f2 = A(2,1).*(1-x) + A(2,2).*x;
+    phi = f1.*(1-x) + f2.*x;
+    
+    xdot1 = (1-x).* ( f1 - phi ) ; 
+    xdot2 = x.* ( f2 - phi ) ;    
+end
+
+
